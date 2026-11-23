@@ -82,28 +82,28 @@ echo [4/4] 启动服务 ...
 call :port_listening 5247
 if errorlevel 1 (
   echo     启动后端 API  http://127.0.0.1:5247 ...
-  start "Backend API (5247)" /D "%BACKEND%" cmd /k dotnet run --launch-profile http
+  start "Backend API [5247]" /D "%BACKEND%" cmd /k dotnet run --launch-profile http
 ) else (
-  echo     后端 API (5247) 已在运行，跳过启动。
+  echo     后端 API [5247] 已在运行，跳过启动。
 )
 
 call :port_listening 5173
 if errorlevel 1 (
   echo     启动前端 Vite  http://127.0.0.1:5173 ...
-  start "Frontend Vite (5173)" /D "%FRONTEND%" cmd /k npm run dev
+  start "Frontend Vite [5173]" /D "%FRONTEND%" cmd /k npm run dev
 ) else (
-  echo     前端 Vite (5173) 已在运行，跳过启动。
+  echo     前端 Vite [5173] 已在运行，跳过启动。
 )
 echo.
 
 echo 等待服务就绪（首次构建可能较慢）...
 call :wait_port 5247 180
 if errorlevel 1 (
-  echo [WARN] 后端 180 秒内未就绪，请查看 "Backend API (5247)" 窗口日志。
+  echo [WARN] 后端 180 秒内未就绪，请查看 "Backend API [5247]" 窗口日志。
 )
 call :wait_port 5173 120
 if errorlevel 1 (
-  echo [WARN] 前端 120 秒内未就绪，请查看 "Frontend Vite (5173)" 窗口日志。
+  echo [WARN] 前端 120 秒内未就绪，请查看 "Frontend Vite [5173]" 窗口日志。
   pause
   exit /b 1
 )
@@ -195,9 +195,9 @@ exit /b 1
 
 :: 判断端口是否已在 IPv4 回环/全部网卡上监听（返回 0 = 已监听）
 :port_listening
-netstat -ano | findstr /c:"127.0.0.1:%~1 " >nul
+netstat -ano | findstr /c:"127.0.0.1:%~1 " | findstr "LISTENING" >nul
 if not errorlevel 1 exit /b 0
-netstat -ano | findstr /c:"0.0.0.0:%~1 " >nul
+netstat -ano | findstr /c:"0.0.0.0:%~1 " | findstr "LISTENING" >nul
 if not errorlevel 1 exit /b 0
 exit /b 1
 
@@ -209,6 +209,6 @@ set "WP_TRIES=%~2"
 for /l %%i in (1,1,%WP_TRIES%) do (
   call :port_listening %WP_PORT%
   if not errorlevel 1 exit /b 0
-  timeout /t 1 /nobreak >nul
+  ping -n 2 127.0.0.1 >nul
 )
 exit /b 1
